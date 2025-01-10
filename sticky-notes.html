@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sticky Notes with Clock and Calendar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            background-image: url('paper2.png'); /* Set brick.png as the background */
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        /* Glare effect */
+        .navbar {
+            width: 100%;
+            background: linear-gradient(90deg, #004c5e, #005f73); /* Deep sea blue gradient */
+            color: white;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: white; /* Glare effect */
+            color: #005f73; /* Deep sea blue text on hover */
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8); /* Glowing glare */
+            text-decoration: none;
+        }
+
+        @keyframes glareAnimation {
+            0% {
+                background-position: -200% -200%;
+            }
+            100% {
+                background-position: 200% 200%;
+            }
+        }
+
+        .sticky-note-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 50px);
+            overflow: hidden;
+        }
+
+        .sticky-note {
+            width: 200px; /* Default width */
+            min-height: 100px; /* Minimum height */
+            padding: 10px;
+            background-color: #ffeb3b; /* Sticky note color */
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            /*resize: both; /* Enable manual resizing */
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            display: inline-block; /* Keeps sticky notes inline */
+            user-select: none;
+        }
+        .sticky-note.zoomed {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1.5);
+            z-index: 1000;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+        .overlay.visible {
+            display: block;
+        }
+
+        .clock {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: move;
+            z-index: 1000;
+        }
+
+        .calendar {
+            width: 350px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            text-align: center;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Roboto', sans-serif;
+            cursor: move;
+            z-index: 1000;
+        }
+        .calendar .month-year {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #1e3d58; /* Dark blue */
+        }
+        .calendar table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .calendar table th, .calendar table td {
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        .calendar table th {
+            background-color: #1e3d58; /* Dark blue */
+            color: white;
+        }
+        .calendar table td {
+            background-color: #f0f0f0; /* Light grey */
+            transition: background-color 0.3s;
+        }
+        .calendar table td:hover {
+            background-color: #1e3d58; /* Dark blue */
+            color: white;
+        }
+        .calendar table td.marked {
+            background-color: #ff9800; /* Orange */
+            color: white;
+            border-radius: 50%;
+        }
+        .calendar table td.green-circle {
+            border: 2px solid #4caf50; /* Green */
+            border-radius: 50%;
+        }
+        .calendar .note-input {
+            width: 95%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            display: none;
+            resize: none;
+        }
+
+        .add-note-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #1e3d58; /* Dark blue */
+            color: white;
+            font-size: 2rem;
+            width: 60px;        /* Set a fixed width */
+            height: 60px;       /* Set a fixed height */
+            border-radius: 50%; /* Ensure it is circular */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-note-btn:hover {
+            background-color: #0f2c44; /* Darker blue */
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Home</a>
+        <a href="sticky-notes.html">Sticky Notes</a>
+    </div>
+    
+    <div class="sticky-note-container" id="stickyNoteContainer">
+        <!-- Sticky notes will be added dynamically -->
+    </div>
+
+    <div class="clock" id="clock"></div>
+
+    <div class="calendar" id="calendar">
+        <div class="month-year" id="monthYear"></div>
+        <table id="calendarTable"></table>
+        <textarea class="note-input" id="noteInput" placeholder="Add a deadline or note..."></textarea>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Plus Button to Add Sticky Notes -->
+    <div class="add-note-btn" id="addNoteBtn">+</div>
+
+    <script>
+        const container = document.getElementById('stickyNoteContainer');
+        const overlay = document.getElementById('overlay');
+        const clockElement = document.getElementById('clock');
+        const calendarElement = document.getElementById('calendarTable');
+        const monthYearElement = document.getElementById('monthYear');
+        const noteInputElement = document.getElementById('noteInput');
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        const calendar = document.getElementById('calendar');
+        const clock = document.getElementById('clock');
+
+        const stickyNotes = JSON.parse(localStorage.getItem('stickyNotes')) || [];
+        const markedDates = JSON.parse(localStorage.getItem('markedDates')) || {};
+        const notesForDates = JSON.parse(localStorage.getItem('notesForDates')) || {};
+
+        // Save sticky notes to localStorage
+        function saveNotes() {
+            localStorage.setItem('stickyNotes', JSON.stringify(stickyNotes));
+        }
+
+        // Save marked dates to localStorage
+        function saveMarkedDates() {
+            localStorage.setItem('markedDates', JSON.stringify(markedDates));
+        }
+
+        // Save notes for dates to localStorage
+        function saveNotesForDates() {
+            localStorage.setItem('notesForDates', JSON.stringify(notesForDates));
+        }
+
+        // Add new sticky note
+        function addStickyNote(content = "") {
+            const note = {
+                content,
+                x: Math.random() * (window.innerWidth - 200),
+                y: Math.random() * (window.innerHeight - 200),
+                rotation: Math.random() * 10 - 5
+            };
+            stickyNotes.push(note);
+            saveNotes();
+            renderNotes();
+        }
+
+        function renderNotes() {
+            container.innerHTML = '';
+            stickyNotes.forEach((note, index) => {
+                if (note.content.trim() === "") {
+                    // If note content is empty, remove the note
+                    stickyNotes.splice(index, 1);
+                    saveNotes();
+                    return; // Skip rendering this empty note
+                }
+                
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'sticky-note';
+                noteDiv.setAttribute('contenteditable', 'true');
+                noteDiv.innerHTML = parseLinks(note.content); // Parse and render links
+                noteDiv.style.left = `${note.x}px`;
+                noteDiv.style.top = `${note.y}px`;
+                noteDiv.style.setProperty('--rotation', `${note.rotation}deg`);
+
+                let isDragging = false;
+
+                // Save the cursor position before the update
+                function saveCaretPosition(element) {
+                    const selection = window.getSelection();
+                    const range = selection.getRangeAt(0);
+                    const preCaretRange = range.cloneRange();
+                    preCaretRange.selectNodeContents(element);
+                    preCaretRange.setEnd(range.endContainer, range.endOffset);
+                    return preCaretRange.toString().length;
+                }
+
+                // Restore the cursor position after the content is updated
+                function restoreCaretPosition(element, caretPos) {
+                    const range = document.createRange();
+                    const selection = window.getSelection();
+                    const textNode = element.firstChild;
+                    range.setStart(textNode, caretPos);
+                    range.setEnd(textNode, caretPos);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+
+
+                noteDiv.addEventListener('input', (e) => {
+                    const content = noteDiv.textContent.trim();
+                    const caretPosition = saveCaretPosition(noteDiv); // Save cursor position
+
+                    stickyNotes[index].content = content;
+                    noteDiv.innerHTML = content; // Re-parse links immediately
+
+                    // Remove empty sticky notes instantly
+                    if (content === "X") {
+                        stickyNotes.splice(index, 1);
+                        saveNotes(); // Save changes to localStorage
+                        renderNotes(); // Re-render the notes after deletion
+                        if (noteDiv.classList.contains('zoomed')) {
+                            noteDiv.classList.remove('zoomed');
+                            overlay.classList.remove('visible');
+                        }
+                        return; // Stop further execution
+                    }
+
+                    saveNotes();
+                    restoreCaretPosition(noteDiv, caretPosition); // Restore cursor position
+                });
+
+                // Add this event listener for 'blur' on the sticky note div to parse the links when the note is clicked off
+                noteDiv.addEventListener('blur', () => {
+                    const content = noteDiv.textContent.trim();
+                    noteDiv.innerHTML = parseLinks(content); // Re-parse links on blur
+                });
+
+                noteDiv.onmousedown = (e) => {
+                    isDragging = false;
+                    noteDiv.style.userSelect = 'none'; // Disable text selection while dragging
+                    
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const initialX = note.x;
+                    const initialY = note.y;
+
+                    function onMouseMove(e) {
+                        isDragging = true;
+                        note.x = initialX + (e.clientX - startX);
+                        note.y = initialY + (e.clientY - startY);
+                        noteDiv.style.left = `${note.x}px`;
+                        noteDiv.style.top = `${note.y}px`;
+                    }
+
+                    function onMouseUp() {
+                        noteDiv.style.userSelect = 'text'; // Re-enable text selection after dragging
+                        saveNotes();
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                        if (!isDragging) {
+                            noteDiv.classList.toggle('zoomed');
+                            overlay.classList.toggle('visible');
+                        }
+                    }
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                };
+
+
+                container.appendChild(noteDiv);
+            });
+        }
+
+        // Utility function to parse links
+        function parseLinks(content) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return content.replace(urlRegex, (url) => {
+                // Create a clickable iframe button
+                return `<span style="color: #005f73; text-decoration: underline; cursor: pointer;" onclick="openIframe('${url}')">${url}</span>`;
+            });
+        }
+
+        // Function to open the URL in an iframe
+        function openIframe(url) {
+            const iframeOverlay = document.createElement('div');
+            iframeOverlay.style.position = 'fixed';
+            iframeOverlay.style.top = '0';
+            iframeOverlay.style.left = '0';
+            iframeOverlay.style.width = '100%';
+            iframeOverlay.style.height = '100%';
+            iframeOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            iframeOverlay.style.zIndex = '1000';
+
+            const iframeContainer = document.createElement('div');
+            iframeContainer.style.position = 'absolute';
+            iframeContainer.style.top = '50%';
+            iframeContainer.style.left = '50%';
+            iframeContainer.style.transform = 'translate(-50%, -50%)';
+            iframeContainer.style.width = '80%';
+            iframeContainer.style.height = '80%';
+            iframeContainer.style.backgroundColor = 'white';
+            iframeContainer.style.borderRadius = '8px';
+            iframeContainer.style.overflow = 'hidden';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            toggleEditable(false); // Disable editing when iframe is open
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'Close';
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '10px';
+            closeButton.style.right = '10px';
+            closeButton.style.padding = '10px 20px';
+            closeButton.style.backgroundColor = '#ff5252';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.borderRadius = '4px';
+            closeButton.style.cursor = 'pointer';
+
+            const openButton = document.createElement('button');
+            openButton.textContent = 'Open in new page';
+            openButton.style.position = 'absolute';
+            openButton.style.top = '10px';
+            openButton.style.right = '120px';
+            openButton.style.padding = '10px 20px';
+            openButton.style.backgroundColor = '#ff5252';
+            openButton.style.color = 'white';
+            openButton.style.border = 'none';
+            openButton.style.borderRadius = '4px';
+            openButton.style.cursor = 'pointer';
+
+            closeButton.onclick = () => {
+                document.body.removeChild(iframeOverlay);
+                toggleEditable(true); // Enable editing when iframe is closed
+            };
+
+            openButton.onclick = () => {
+                //ADD LOGIC TO OPEN IN A NEW PAGEe
+            };
+
+            iframeContainer.appendChild(iframe);
+            iframeContainer.appendChild(closeButton);
+            iframeContainer.appendChild(openButton);
+            iframeOverlay.appendChild(iframeContainer);
+            document.body.appendChild(iframeOverlay);
+        }
+
+        function toggleEditable(editable) {
+            const stickyNotes = document.querySelectorAll('.sticky-note');
+            stickyNotes.forEach((note) => {
+                note.setAttribute('contenteditable', editable);
+                if (!editable) {
+                    // If not editable, reset zoom and remove background blur
+                    note.classList.remove('zoomed');
+                    overlay.classList.remove('visible')
+                }
+            });
+        }
+
+        // Clock functionality
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        setInterval(updateClock, 1000); // Update every second
+
+        // Calendar functionality
+        function renderCalendar(month, year) {
+            monthYearElement.textContent = `${year} - ${month + 1}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let calendarHTML = '<tr>';
+            for (let i = 0; i < 7; i++) {
+                calendarHTML += `<th>${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</th>`;
+            }
+            calendarHTML += '</tr><tr>';
+
+            // Empty cells for the first week
+            for (let i = 0; i < firstDay; i++) {
+                calendarHTML += '<td></td>';
+            }
+
+            // Create the days in the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isMarked = markedDates[`${year}-${month + 1}-${day}`];
+                const isGreenCircle = notesForDates[`${year}-${month + 1}-${day}`] !== undefined;
+                calendarHTML += `<td class="${isMarked ? 'marked' : ''} ${isGreenCircle ? 'green-circle' : ''}" onclick="openNoteInput(${day}, ${month}, ${year})">${day}</td>`;
+                if ((firstDay + day) % 7 === 0) {
+                    calendarHTML += '</tr><tr>';
+                }
+            }
+
+            calendarHTML += '</tr>';
+            calendarElement.innerHTML = calendarHTML;
+        }
+
+        function openNoteInput(day, month, year) {
+            const dateString = `${year}-${month + 1}-${day}`;
+            const existingNote = notesForDates[dateString] || '';
+            noteInputElement.value = existingNote;
+            noteInputElement.style.display = 'block';
+            noteInputElement.focus();
+
+            noteInputElement.onblur = () => {
+                const inputValue = noteInputElement.value.trim(); // Trim to avoid spaces-only inputs
+
+                if (inputValue) {
+                    // Save the note if it's not null or empty
+                    notesForDates[dateString] = inputValue;
+                } else {
+                    // Remove the note for the date if input is null or empty
+                    delete notesForDates[dateString];
+                }
+
+                saveNotesForDates();
+                renderCalendar(month, year);
+                noteInputElement.style.display = 'none';
+            };
+        }
+
+
+        // Initialize
+        renderNotes();
+        renderCalendar(new Date().getMonth(), new Date().getFullYear());
+        updateClock();
+
+        // Add sticky note when the plus button is clicked
+        addNoteBtn.onclick = () => {
+            addStickyNote("New note");
+        };
+
+        // Close the zoomed sticky note when clicking off
+        overlay.onclick = () => {
+            const zoomedNote = document.querySelector('.sticky-note.zoomed');
+            if (zoomedNote) {
+                zoomedNote.classList.remove('zoomed');
+                overlay.classList.remove('visible');
+            }
+        };
+
+        // Dragging functionality for Calendar and Clock
+        function makeDraggable(element) {
+            let isDragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            element.onmousedown = (e) => {
+                isDragging = true;
+                offsetX = e.clientX - element.getBoundingClientRect().left;
+                offsetY = e.clientY - element.getBoundingClientRect().top;
+
+                document.onmousemove = (e) => {
+                    if (isDragging) {
+                        element.style.left = `${e.clientX - offsetX}px`;
+                        element.style.top = `${e.clientY - offsetY}px`;
+                    }
+                };
+
+                document.onmouseup = () => {
+                    isDragging = false;
+                    document.onmousemove = null;
+                    document.onmouseup = null;
+                };
+            };
+        }
+
+        makeDraggable(calendar);
+        makeDraggable(clock);
+
+        // Function to get the value of a cookie by name
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        // Function to set a cookie
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000)); // expires in 'days'
+            document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/`;
+        }
+
+        // Check if the cookie 'welcomeMessageShown' is present
+        if (!getCookie('welcomeMessageShown')) {
+            // If cookie is not present, show the welcome message
+            addStickyNote("WELCOME!!! this is my app! If you want to add a sticky note, hit the plus in the bottom right. If you want to open or save a link, type it, click off and then press the link. It will open within this page, but can be expanded to another page via 'Open in new tab' button. To delete this message, delete all of the content and replace it with capital X");
+            
+            // Set the cookie so that the message is not shown again
+            setCookie('welcomeMessageShown', 'true', 30); // Set cookie for 30 days
+        }
+
+    </script>
+</body>
+</html>
