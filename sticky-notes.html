@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sticky Notes with Clock and Calendar</title>
+    <title>PaperOS</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,12 +11,14 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            background-image: url('paper2.png'); /* Set brick.png as the background */
+            background-image: url('paper2.png');
             background-size: cover;
-            background-position: center;
+            background-position: 50% 50%; /* Lock background to center */
+            background-attachment: fixed; /* Prevents scrolling issues */
             height: 100vh;
-            overflow: hidden; /* Prevent scrolling */
+            overflow: hidden;
         }
+
 
         /* Glare effect */
         .navbar {
@@ -61,18 +63,19 @@
         }
 
         .sticky-note {
-            width: 200px; /* Default width */
-            min-height: 100px; /* Minimum height */
-            padding: 10px;
-            background-color: #ffeb3b; /* Sticky note color */
-            border-radius: 8px;
-            position: relative;
+            width: 160px;
+            min-height: 160px;
+            background-color: #f4e04d; /* Light yellow */
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
             overflow: hidden;
-            /*resize: both; /* Enable manual resizing */
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-            display: inline-block; /* Keeps sticky notes inline */
-            user-select: none;
+            position: absolute;
+            text-align: center;
+            word-wrap: break-word;
+            transform: rotate(calc(var(--rotation, 0deg)));
+            transition: transform 0.2s;
         }
         .sticky-note.zoomed {
             position: fixed;
@@ -266,124 +269,6 @@
             renderNotes();
         }
 
-        function renderNotes() {
-            container.innerHTML = '';
-            stickyNotes.forEach((note, index) => {
-                if (note.content.trim() === "") {
-                    // If note content is empty, remove the note
-                    stickyNotes.splice(index, 1);
-                    saveNotes();
-                    return; // Skip rendering this empty note
-                }
-                
-                const noteDiv = document.createElement('div');
-                noteDiv.className = 'sticky-note';
-                noteDiv.setAttribute('contenteditable', 'true');
-                noteDiv.innerHTML = parseLinks(note.content); // Parse and render links
-                noteDiv.style.left = `${note.x}px`;
-                noteDiv.style.top = `${note.y}px`;
-                noteDiv.style.setProperty('--rotation', `${note.rotation}deg`);
-
-                let isDragging = false;
-
-                // Save the cursor position before the update
-                function saveCaretPosition(element) {
-                    const selection = window.getSelection();
-                    const range = selection.getRangeAt(0);
-                    const preCaretRange = range.cloneRange();
-                    preCaretRange.selectNodeContents(element);
-                    preCaretRange.setEnd(range.endContainer, range.endOffset);
-                    return preCaretRange.toString().length;
-                }
-
-                // Restore the cursor position after the content is updated
-                function restoreCaretPosition(element, caretPos) {
-                    const range = document.createRange();
-                    const selection = window.getSelection();
-                    const textNode = element.firstChild;
-                    range.setStart(textNode, caretPos);
-                    range.setEnd(textNode, caretPos);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-
-
-                noteDiv.addEventListener('input', (e) => {
-                    const content = noteDiv.textContent.trim();
-                    const caretPosition = saveCaretPosition(noteDiv); // Save cursor position
-
-                    stickyNotes[index].content = content;
-                    noteDiv.innerHTML = content; // Re-parse links immediately
-
-                    // Remove empty sticky notes instantly
-                    if (content === "X") {
-                        stickyNotes.splice(index, 1);
-                        saveNotes(); // Save changes to localStorage
-                        renderNotes(); // Re-render the notes after deletion
-                        if (noteDiv.classList.contains('zoomed')) {
-                            noteDiv.classList.remove('zoomed');
-                            overlay.classList.remove('visible');
-                        }
-                        return; // Stop further execution
-                    }
-
-                    saveNotes();
-                    restoreCaretPosition(noteDiv, caretPosition); // Restore cursor position
-                });
-
-                // Add this event listener for 'blur' on the sticky note div to parse the links when the note is clicked off
-                noteDiv.addEventListener('blur', () => {
-                    const content = noteDiv.textContent.trim();
-                    noteDiv.innerHTML = parseLinks(content); // Re-parse links on blur
-                });
-
-                noteDiv.onmousedown = (e) => {
-                    isDragging = false;
-                    noteDiv.style.userSelect = 'none'; // Disable text selection while dragging
-                    
-                    const startX = e.clientX;
-                    const startY = e.clientY;
-                    const initialX = note.x;
-                    const initialY = note.y;
-
-                    function onMouseMove(e) {
-                        isDragging = true;
-                        note.x = initialX + (e.clientX - startX);
-                        note.y = initialY + (e.clientY - startY);
-                        noteDiv.style.left = `${note.x}px`;
-                        noteDiv.style.top = `${note.y}px`;
-                    }
-
-                    function onMouseUp() {
-                        noteDiv.style.userSelect = 'text'; // Re-enable text selection after dragging
-                        saveNotes();
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
-                        if (!isDragging) {
-                            noteDiv.classList.toggle('zoomed');
-                            overlay.classList.toggle('visible');
-                        }
-                    }
-
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
-                };
-
-
-                container.appendChild(noteDiv);
-            });
-        }
-
-        // Utility function to parse links
-        function parseLinks(content) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            return content.replace(urlRegex, (url) => {
-                // Create a clickable iframe button
-                return `<span style="color: #005f73; text-decoration: underline; cursor: pointer;" onclick="openIframe('${url}')">${url}</span>`;
-            });
-        }
-
-        // Function to open the URL in an iframe
         function openIframe(url) {
             const iframeOverlay = document.createElement('div');
             iframeOverlay.style.position = 'fixed';
@@ -442,7 +327,7 @@
             };
 
             openButton.onclick = () => {
-                //ADD LOGIC TO OPEN IN A NEW PAGEe
+                window.open(url, '_blank');
             };
 
             iframeContainer.appendChild(iframe);
@@ -450,6 +335,13 @@
             iframeContainer.appendChild(openButton);
             iframeOverlay.appendChild(iframeContainer);
             document.body.appendChild(iframeOverlay);
+        }
+
+        function parseLinks(content) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return content.replace(urlRegex, (url) => {
+                return `<span style="color: #005f73; text-decoration: underline; cursor: pointer;" onclick="openIframe('${url}')">${url}</span>`;
+            });
         }
 
         function toggleEditable(editable) {
@@ -463,6 +355,81 @@
                 }
             });
         }
+
+
+        // Render sticky notes
+        function renderNotes() {
+            container.innerHTML = '';
+            stickyNotes.forEach((note, index) => {
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'sticky-note';
+                noteDiv.setAttribute('contenteditable', 'true');
+                noteDiv.innerHTML = parseLinks(note.content); 
+                noteDiv.style.left = `${note.x}px`;
+                noteDiv.style.top = `${note.y}px`;
+                noteDiv.style.setProperty('--rotation', `${note.rotation}deg`);
+
+                let isDragging = false;
+
+                noteDiv.addEventListener('input', () => {
+                    const trimmedContent = noteDiv.textContent.trim();
+                    if (trimmedContent === 'X') {
+                        // Remove the note if 'X' is entered
+                        stickyNotes.splice(index, 1);
+                        saveNotes();
+                        renderNotes();
+                        overlay.classList.remove('visible');
+                    } else {
+                        stickyNotes[index].content = trimmedContent;
+                        saveNotes();
+                    }
+                });
+
+                noteDiv.addEventListener('blur', () => {
+                    const content = noteDiv.textContent.trim();
+                    noteDiv.innerHTML = parseLinks(content); // Ensure links are clickable after editing
+                });
+
+                noteDiv.onmousedown = (e) => {
+                    isDragging = false;
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const initialX = note.x;
+                    const initialY = note.y;
+
+                    function onMouseMove(e) {
+                        isDragging = true;
+                        note.x = initialX + (e.clientX - startX);
+                        note.y = initialY + (e.clientY - startY);
+                        noteDiv.style.left = `${note.x}px`;
+                        noteDiv.style.top = `${note.y}px`;
+                    }
+
+                    function onMouseUp() {
+                        saveNotes();
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                        if (!isDragging) {
+                            noteDiv.classList.add('zoomed');
+                            overlay.classList.add('visible');
+                        }
+                    }
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                };
+
+                container.appendChild(noteDiv);
+            });
+        }
+
+        // Ensure links in existing notes are parsed on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            stickyNotes.forEach((note, index) => {
+                stickyNotes[index].content = parseLinks(note.content);
+            });
+        });
+
 
         // Clock functionality
         function updateClock() {
@@ -598,12 +565,11 @@
         // Check if the cookie 'welcomeMessageShown' is present
         if (!getCookie('welcomeMessageShown')) {
             // If cookie is not present, show the welcome message
-            addStickyNote("WELCOME!!! this is my app! If you want to add a sticky note, hit the plus in the bottom right. If you want to open or save a link, type it, click off and then press the link. It will open within this page, but can be expanded to another page via 'Open in new tab' button. To delete this message, delete all of the content and replace it with capital X");
-            
+            addStickyNote("WELCOME!!! This is my app! If you want to add a sticky note, hit the plus in the bottom right. If you want to open or save a link, type it, click off and then press the link. It will open within this page, but can be expanded to another page via 'Open in new tab' button. If you get a this site cannot be reached error, open the page in a new tab. To delete this message, delete all of the content and replace it with capital X.");
+
             // Set the cookie so that the message is not shown again
             setCookie('welcomeMessageShown', 'true', 30); // Set cookie for 30 days
         }
-
     </script>
 </body>
 </html>
