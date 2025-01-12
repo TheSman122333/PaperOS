@@ -301,7 +301,7 @@
             closeButton.textContent = 'Close';
             closeButton.style.position = 'absolute';
             closeButton.style.top = '10px';
-            closeButton.style.right = '10px';
+            closeButton.style.left = '10px';
             closeButton.style.padding = '10px 20px';
             closeButton.style.backgroundColor = '#ff5252';
             closeButton.style.color = 'white';
@@ -313,7 +313,7 @@
             openButton.textContent = 'Open in new page';
             openButton.style.position = 'absolute';
             openButton.style.top = '10px';
-            openButton.style.right = '120px';
+            openButton.style.left = '120px';
             openButton.style.padding = '10px 20px';
             openButton.style.backgroundColor = '#ff5252';
             openButton.style.color = 'white';
@@ -424,11 +424,11 @@
         }
 
         // Ensure links in existing notes are parsed on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        /*document.addEventListener('DOMContentLoaded', () => {
             stickyNotes.forEach((note, index) => {
                 stickyNotes[index].content = parseLinks(note.content);
             });
-        });
+        });*/
 
 
         // Clock functionality
