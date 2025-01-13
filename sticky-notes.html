@@ -11,7 +11,7 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            background-image: url('paper2.png');
+            background-image: url('background.png');
             background-size: cover;
             background-position: 50% 50%; /* Lock background to center */
             background-attachment: fixed; /* Prevents scrolling issues */
@@ -101,7 +101,7 @@
 
         .clock {
             position: fixed;
-            top: 50%;
+            top: 52.94739%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 3rem;
@@ -123,7 +123,7 @@
             border-radius: 12px;
             text-align: center;
             position: absolute;
-            top: 20px;
+            top: 7.5%;
             left: 50%;
             transform: translateX(-50%);
             font-family: 'Roboto', sans-serif;
@@ -381,6 +381,8 @@
                         overlay.classList.remove('visible');
                     } else {
                         stickyNotes[index].content = trimmedContent;
+                        console.log(note.content)
+                        console.log(trimmedContent)
                         saveNotes();
                     }
                 });
