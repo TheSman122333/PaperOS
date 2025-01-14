@@ -201,12 +201,76 @@
         .add-note-btn:hover {
             background-color: #0f2c44; /* Darker blue */
         }
+
+        /* Container for the games button and menu */
+        .games-menu-container {
+            position: fixed;
+            bottom: 20px;
+            right: 90px; /* Adjust to position relative to the "+" button */
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+        }
+
+        /* Style for the games button */
+        .games-btn {
+            background-color: #1e3d58;
+            color: white;
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+
+        .games-btn:hover {
+            background-color: #0f2c44;
+        }
+
+        /* Style for the dropdown menu */
+        .games-menu {
+            display: none;
+            flex-direction: column;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .games-menu a {
+            text-decoration: none;
+            color: #1e3d58;
+            padding: 5px 10px;
+            margin: 2px 0;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .games-menu a:hover {
+            background-color: #f4e04d;
+        }
+
+        /* Show the menu when active */
+        .games-menu.active {
+            display: flex;
+        }
+
     </style>
 </head>
 <body>
     <div class="navbar">
         <a href="index.html">Home</a>
         <a href="sticky-notes.html">Sticky Notes</a>
+        <a href="games.html">Games</a>
+
     </div>
     
     <div class="sticky-note-container" id="stickyNoteContainer">
@@ -225,6 +289,14 @@
 
     <!-- Plus Button to Add Sticky Notes -->
     <div class="add-note-btn" id="addNoteBtn">+</div>
+    <div class="games-menu-container">
+        <button class="games-btn">🎮</button>
+        <ul class="games-menu">
+            <a data-url="https://ttfq.github.io/retrobowl/">RetroBowl</a>
+            <a data-url="https://online-go.com/">Go</a>
+            <a data-url="">Game 3</a>
+        </ul>
+    </div>
 
     <script>
         const container = document.getElementById('stickyNoteContainer');
@@ -240,6 +312,31 @@
         const stickyNotes = JSON.parse(localStorage.getItem('stickyNotes')) || [];
         const markedDates = JSON.parse(localStorage.getItem('markedDates')) || {};
         const notesForDates = JSON.parse(localStorage.getItem('notesForDates')) || {};
+
+        const gamesBtn = document.querySelector('.games-btn');
+        const gamesMenu = document.querySelector('.games-menu');
+
+        // Toggle menu visibility
+        gamesBtn.addEventListener('click', () => {
+            gamesMenu.classList.toggle('active');
+        });
+
+        // Close the menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!gamesMenu.contains(e.target) && !gamesBtn.contains(e.target)) {
+                gamesMenu.classList.remove('active');
+            }
+        });
+
+        // Add click event listener to each game menu item
+        document.querySelectorAll('.games-menu a').forEach(item => {
+            item.addEventListener('click', () => {
+                const gameUrl = item.getAttribute('data-url');
+                if (gameUrl) {
+                    openIframe(gameUrl); // Open the game in an iframe
+                }
+            });
+        });
 
         // Save sticky notes to localStorage
         function saveNotes() {
@@ -301,7 +398,7 @@
             const closeButton = document.createElement('button');
             closeButton.textContent = 'Close';
             closeButton.style.position = 'absolute';
-            closeButton.style.top = '10px';
+            closeButton.style.bottom = '10px';
             closeButton.style.left = '10px';
             closeButton.style.padding = '10px 20px';
             closeButton.style.backgroundColor = '#ff5252';
@@ -313,7 +410,7 @@
             const openButton = document.createElement('button');
             openButton.textContent = 'Open in new page';
             openButton.style.position = 'absolute';
-            openButton.style.top = '10px';
+            openButton.style.bottom = '10px';
             openButton.style.left = '120px';
             openButton.style.padding = '10px 20px';
             openButton.style.backgroundColor = '#ff5252';
