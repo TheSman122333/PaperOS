@@ -336,6 +336,23 @@
         .timer-display.active {
             display: block;
         }
+
+        .daily-quote-widget {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 1.2rem;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+            z-index: 1;
+            opacity: 85%;
+            font-family:Georgia, 'Times New Roman', Times, serif
+        }
+
     </style>
 </head>
 <body>
@@ -370,8 +387,12 @@
         <button id="normalTimerBtn">Normal Timer</button>
     </div>
 
-    <div class="timer-display" id="timerDisplay"></div>
+    <div class="daily-quote-widget" id="dailyQuoteWidget">
+        <p id="quoteText"></p>
+    </div>
 
+    <div class="timer-display" id="timerDisplay"></div>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         const container = document.getElementById('stickyNoteContainer');
         const overlay = document.getElementById('overlay');
@@ -468,6 +489,7 @@
             updateTimer();
             timerInterval = setInterval(updateTimer, 1000);
         }
+
 
         // cache suks
         function saveNotes() {
@@ -651,7 +673,6 @@
             });
         }
 
-        // Ensure links in existing notes are parsed on page load
         /*document.addEventListener('DOMContentLoaded', () => {
             stickyNotes.forEach((note, index) => {
                 stickyNotes[index].content = parseLinks(note.content);
@@ -659,7 +680,6 @@
         });*/
 
 
-        // Clock functionality
         function updateClock() {
             const now = new Date();
             const hours = now.getHours().toString().padStart(2, '0');
@@ -668,8 +688,7 @@
             clockElement.textContent = `${hours}:${minutes}:${seconds}`;
         }
 
-        setInterval(updateClock, 1000); //Update every second
-
+        setInterval(updateClock, 1000); 
         function renderCalendar(month, year) {
             monthYearElement.textContent = `${year} - ${month + 1}`;
 
@@ -722,9 +741,46 @@
         }
 
 
+        function notifyIfDateHasNote() {
+            const currentDate = new Date();
+            const day = currentDate.getDate();
+            const month = currentDate.getMonth() + 1;
+            const year = currentDate.getFullYear();
+            const dateString = `${day}-${month}-${year}`;
 
+            if (notesForDates[dateString]) {
+                /*if (!getCookie('noteshown')){
+                    alert(`Note for ${dateString}: ${notesForDates[dateString]}`);
+                    setCookie('noteshown', 'true', 1); 
+                }*/
+                alert(`Note for ${dateString}: ${notesForDates[dateString]}`);
+            }
+        }
+
+        function showDailyQuote() {
+            const quotes = [
+                "The only way to do great work is to love what you do. - Steve Jobs",
+                "The best way to predict your future is to create it. - Abraham Lincoln", 
+                "The difference between ordinary and extraordinary is that little extra. - Jimmy Johnson",
+                "The only person you are destined to become is the person you decide to be. - Ralph Waldo Emerson",
+                "Don't let what you cannot do interfere with what you can do. - John Wooden",
+                "It is during our darkest moments that we must focus to see the light. - Aristotle ",
+                "The journey of a thousand miles begins with a single step. - Lao Tzu" ,
+                "Believe you can and you're halfway there. - Theodore Roosevelt",
+                "The only thing that stands between you and your dream is the will to try and the belief that it is actually possible. - Joel Brown", 
+                "Fall seven times, stand up eight. - Japanese proverb"
+            ];
+
+            const quoteTextElement = document.getElementById('quoteText');
+            const todayIndex = new Date().getDate() % quotes.length;
+            quoteTextElement.textContent = quotes[todayIndex];
+        }
+
+
+        showDailyQuote();
         renderNotes();
         renderCalendar(new Date().getMonth(), new Date().getFullYear());
+        notifyIfDateHasNote();
         updateClock();
 
         addNoteBtn.onclick = () => {
@@ -768,6 +824,8 @@
 
         makeDraggable(calendar);
         makeDraggable(clock);
+        const musicPlayer = document.getElementById('musicPlayer');
+        makeDraggable(musicPlayer);
 
         function getCookie(name) {
             const value = `; ${document.cookie}`;
