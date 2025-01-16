@@ -46,7 +46,7 @@ To report bugs, please do it via Github.
 Contributors names and contact info
 
 Sriman Arya
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+[@Litum17](https://github.com/TheSman122333)
 
 ## License
 
