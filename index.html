@@ -76,6 +76,29 @@
             transform: rotate(calc(var(--rotation, 0deg)));
             transition: transform 0.2s;
         }
+        
+        @keyframes crumple {
+            0% {
+                transform: scale(1) rotate(0deg) skew(0deg, 0deg);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(0.9) rotate(-5deg) skew(5deg, 5deg);
+            }
+            40% {
+                transform: scale(0.8) rotate(10deg) skew(-10deg, -10deg);
+            }
+            60% {
+                transform: scale(0.6) rotate(-15deg) skew(15deg, 15deg);
+            }
+            80% {
+                transform: scale(0.4) rotate(20deg) skew(-20deg, -20deg);
+            }
+            100% {
+                transform: scale(0.2) rotate(30deg) skew(30deg, 30deg);
+                opacity: 0;
+            }
+        }
         .sticky-note.zoomed {
             position: fixed;
             top: 50%;
@@ -376,7 +399,7 @@
             <a data-url="https://ttfq.github.io/retrobowl/">RetroBowl</a>
             <a data-url="https://online-go.com/">Go</a>
             <a data-url="https://www.kodub.com/apps/polytrack">PolyTrack</a>
-            <a data-url="https://www.justdoinghomework.com/">Chess.com</a>
+            <a data-url="https://cube-king.github.io/gamebarge/">GameBarge</a>
         </ul>
     </div>
     <div class="timer-btn" id="timerBtn">⏱️</div>
@@ -392,7 +415,6 @@
     </div>
 
     <div class="timer-display" id="timerDisplay"></div>
-    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         const container = document.getElementById('stickyNoteContainer');
         const overlay = document.getElementById('overlay');
@@ -623,10 +645,14 @@
                     const trimmedContent = noteDiv.textContent.trim();
                     if (trimmedContent === 'X') {
                         //remove note if X
-                        stickyNotes.splice(index, 1);
-                        saveNotes();
-                        renderNotes();
-                        overlay.classList.remove('visible');
+                        noteDiv.style.animation = "crumple 0.8s";
+                        noteDiv.addEventListener('animationend', function handleAnimationEnd() {
+                            noteDiv.removeEventListener('animationend', handleAnimationEnd);
+                            stickyNotes.splice(index, 1);
+                            saveNotes();
+                            renderNotes();
+                            overlay.classList.remove('visible');
+                        });
                     } else {
                         stickyNotes[index].content = trimmedContent;
                         console.log(note.content)
@@ -634,7 +660,6 @@
                         saveNotes();
                     }
                 });
-
                 noteDiv.addEventListener('blur', () => {
                     const content = noteDiv.textContent.trim();
                     noteDiv.innerHTML = parseLinks(content);
