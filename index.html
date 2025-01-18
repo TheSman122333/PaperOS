@@ -497,6 +497,20 @@
         border-radius: 50%;
         }
 
+        @media (max-width: 768px), (max-height: 600px) {
+            body::before {
+                content: "This website only works on landscape mode, Sorry ❤️";
+                display: block;
+                text-align: center;
+                font-size: 20px;
+                color: #333;
+                padding: 20px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        }
     </style>
 </head>
 <body>
