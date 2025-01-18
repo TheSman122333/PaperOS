@@ -2,11 +2,8 @@
 
 PaperOS is a simple web-based operating system, its sleek, clean and packed full of features.
 
-## Description
+![image](https://github.com/user-attachments/assets/d05cb49c-cdfc-44e6-8c97-7086d9f36de4)
 
-An in-depth paragraph about your project and overview of use.
-
-## Getting Started
 
 ### Dependencies
 
