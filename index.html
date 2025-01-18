@@ -496,21 +496,6 @@
         .slider.round:before {
         border-radius: 50%;
         }
-
-        @media (max-width: 768px), (max-height: 600px) {
-            body::before {
-                content: "This website only works on landscape mode, Sorry ❤️";
-                display: block;
-                text-align: center;
-                font-size: 20px;
-                color: #333;
-                padding: 20px;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-            }
-        }
     </style>
 </head>
 <body>
@@ -984,12 +969,12 @@
 
             if (!getCookie('welcomeMessageShown')) {
                 if(getCookie('helpCookie')){
-                    addStickyNote("WELCOME!!! This is my app! If you want to add a sticky note, hit the plus in the bottom right. If you want to open or save a link, type it, click off and then press the link. It will open within this page, but can be expanded to another page via 'Open in new tab' button. If you get a this site cannot be reached error, open the page in a new tab. To delete this message, delete all of the content and replace it with capital X.");
+                    addStickyNote("WELCOME!!! This is my app! If you want to add a sticky note, hit the plus in the bottom right. If you want to open or save a link, type it, click off and then press the link. It will open within this page, but can be expanded to another page via 'Open in new tab' button. If you get a this site cannot be reached error, open the page in a new tab. To delete this message, delete all of the content and replace it with capital X. In mobile some elements may be covered up by others.");
                     setCookie('welcomeMessageShown', 'true', 30); 
                 }
             }
             if(!getCookie('basicHelp')){
-                addStickyNote("WELCOME!!! This is my app! If you want to add a sticky note, hit the plus in the bottom right. If you want to open or save a link, type it, click off and then press the link. It will open within this page, but can be expanded to another page via 'Open in new tab' button. If you get a this site cannot be reached error, open the page in a new tab. To delete this message, delete all of the content and replace it with capital X. If you do not see anything except this note, hit the settings icon and enable it.");
+                addStickyNote("WELCOME!!! This is my app! If you want to add a sticky note, hit the plus in the bottom right. If you want to open or save a link, type it, click off and then press the link. It will open within this page, but can be expanded to another page via 'Open in new tab' button. If you get a this site cannot be reached error, open the page in a new tab. To delete this message, delete all of the content and replace it with capital X. If you do not see anything except this note, hit the settings icon and enable it. In mobile, some elements may be covered up by others.");
                 setCookie('basicHelp', 'true', 365); 
             }
             
